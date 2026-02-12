@@ -1,4 +1,4 @@
----
+
 
 # 🛡️ End-to-End Syslog Ingestion via Azure Monitor Agent (AMA)
 
@@ -124,5 +124,4 @@ Syslog
 
 ---
 
-**Would you like me to help you format a "Skills & Certifications" section to add to your main GitHub profile to complement this project?**
 
