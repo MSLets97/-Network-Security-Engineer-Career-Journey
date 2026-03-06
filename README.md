@@ -14,7 +14,12 @@ By utilizing **Data Collection Rules (DCRs)**, this architecture allows for gran
 ## 🏗️ Architecture & Data Flow
 The deployment utilizes a centralized Ubuntu 24.04 Log Forwarder to bridge the gap between local/network assets and the cloud.
 
+<p align="center">
+<img src="images/azure-architecture.png" width="85%" title="Azure Sentinel Architecture">
 
+
+<i><b>Figure 1:</b> Logical flow of Syslog and CEF telemetry from the Ubuntu Log Forwarder to the Log Analytics Workspace via the Azure Monitor Agent (AMA).</i>
+</p>
 
 1.  **Sources:** Security appliances (Firewalls, IDS) send logs via Syslog/CEF.
 2.  **Listener:** The `rsyslog` daemon captures traffic on **Port 514**.
