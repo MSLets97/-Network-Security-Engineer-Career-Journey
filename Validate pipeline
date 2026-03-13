@@ -1,0 +1,54 @@
+#!/bin/bash
+# ============================================================
+# validate_pipeline.sh
+# Tests the full pfSense → Forwarder → Sentinel pipeline
+# Run this on the Linux Forwarder VM after setup is complete
+# ============================================================
+
+echo "🔍 Validating CEF pipeline..."
+echo ""
+
+# 1. Check rsyslog
+echo "✅ [1/4] Checking rsyslog..."
+if systemctl is-active --quiet rsyslog; then
+  echo "   rsyslog is running ✔"
+else
+  echo "   ❌ rsyslog is NOT running. Run: sudo systemctl start rsyslog"
+fi
+
+# 2. Check AMA
+echo ""
+echo "✅ [2/4] Checking Azure Monitor Agent..."
+if systemctl is-active --quiet azuremonitoragent; then
+  echo "   AMA is running ✔"
+else
+  echo "   ❌ AMA is NOT running. Run: sudo systemctl start azuremonitoragent"
+fi
+
+# 3. Check port 514
+echo ""
+echo "✅ [3/4] Checking if port 514 is open..."
+if sudo ss -ulnp | grep -q 514; then
+  echo "   Port 514 (UDP) is listening ✔"
+else
+  echo "   ❌ Port 514 not detected. Check /etc/rsyslog.conf"
+fi
+
+# 4. Send test CEF event
+echo ""
+echo "✅ [4/4] Sending test CEF event to Sentinel..."
+logger -p local4.warn -t CEF \
+  "CEF:0|pfSense|Firewall|1.0|100|Test Validation Event|5|src=1.2.3.4 dst=8.8.8.8 dpt=443 proto=TCP act=block"
+
+echo "   Test event sent ✔"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 Now verify in Microsoft Sentinel with this KQL:"
+echo ""
+echo "   CommonSecurityLog"
+echo "   | where DeviceVendor == \"pfSense\""
+echo "   | where TimeGenerated > ago(15m)"
+echo "   | take 10"
+echo ""
+echo "⏱️  Allow up to 10-15 minutes for the first events to appear."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
