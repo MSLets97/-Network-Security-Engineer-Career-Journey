@@ -1,0 +1,31 @@
+#!/bin/bash
+# ============================================================
+# install_rsyslog.sh
+# Installs and configures rsyslog to receive syslog on port 514
+# Run this on the Linux Forwarder VM
+# ============================================================
+
+set -e
+
+echo "🔧 Installing and configuring rsyslog..."
+
+# Update and install
+sudo apt-get update -y
+sudo apt-get install -y rsyslog
+
+# Enable UDP reception
+sudo sed -i 's/#module(load="imudp")/module(load="imudp")/' /etc/rsyslog.conf
+sudo sed -i 's/#input(type="imudp" port="514")/input(type="imudp" port="514")/' /etc/rsyslog.conf
+
+# Enable TCP reception
+sudo sed -i 's/#module(load="imtcp")/module(load="imtcp")/' /etc/rsyslog.conf
+sudo sed -i 's/#input(type="imtcp" port="514")/input(type="imtcp" port="514")/' /etc/rsyslog.conf
+
+# Restart and enable
+sudo systemctl restart rsyslog
+sudo systemctl enable rsyslog
+
+echo "✅ rsyslog configured. Verifying port 514 is listening..."
+sudo ss -ulnp | grep 514 || echo "⚠️  Port 514 not found — check /etc/rsyslog.conf manually"
+
+echo "✅ Done!"
