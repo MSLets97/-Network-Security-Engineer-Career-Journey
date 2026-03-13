@@ -1,0 +1,45 @@
+#!/bin/bash
+# ============================================================
+# install_ama.sh
+# Downloads and runs Microsoft's CEF installer script
+# which configures rsyslog + installs AMA on the forwarder VM
+#
+# Usage: sudo bash install_ama.sh <WorkspaceID> <PrimaryKey>
+#
+# Get Workspace ID and Primary Key from:
+# Azure Portal → Log Analytics Workspace → Agents
+# ============================================================
+
+set -e
+
+WORKSPACE_ID=$1
+PRIMARY_KEY=$2
+
+if [ -z "$WORKSPACE_ID" ] || [ -z "$PRIMARY_KEY" ]; then
+  echo "❌ Error: Missing arguments."
+  echo "Usage: sudo bash install_ama.sh <WorkspaceID> <PrimaryKey>"
+  exit 1
+fi
+
+echo "📥 Downloading CEF installer from Microsoft..."
+sudo wget -O cef_installer.py \
+  https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/cef_installer.py
+
+echo "🔧 Running CEF installer..."
+sudo python3 cef_installer.py "$WORKSPACE_ID" "$PRIMARY_KEY"
+
+echo "🔍 Verifying services..."
+
+echo ""
+echo "--- rsyslog status ---"
+sudo systemctl status rsyslog --no-pager | head -10
+
+echo ""
+echo "--- Azure Monitor Agent status ---"
+sudo systemctl status azuremonitoragent --no-pager | head -10 || \
+  echo "⚠️  AMA not found. Make sure it was installed via Azure Portal or CLI first."
+
+echo ""
+echo "✅ Installation complete!"
+echo "📌 Next step: Configure pfSense to send syslog to this VM on port 514"
+echo "   Then run validate_pipeline.sh to test end-to-end."
